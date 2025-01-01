@@ -19,7 +19,7 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
           <Header />
           <AntdLayout.Content
             style={{
-              padding: isSmall ? 32 : 16,
+              padding: isSmall ? 9 : 8,
             }}
           >
             {children}
