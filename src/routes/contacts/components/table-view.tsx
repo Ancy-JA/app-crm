@@ -140,7 +140,12 @@ export const TableView: React.FC<Props> = ({
             <Button
               size="small"
               href="tel:1234567890"
-              icon={<PhoneOutlined />}
+              icon={
+                <PhoneOutlined
+                  onPointerEnterCapture={undefined}
+                  onPointerLeaveCapture={undefined}
+                />
+              }
             />
             <DeleteButton hideText size="small" recordItemId={record.id} />
           </Space>

@@ -66,6 +66,7 @@ import "@refinedev/antd/dist/reset.css";
 import "./styles/antd.css";
 import "./styles/fc.css";
 import "./styles/index.css";
+import { gqlDataProvider } from "./providers/data/dataProviders";
 
 const App: React.FC = () => {
   // This hook is used to automatically login the user.
@@ -84,7 +85,7 @@ const App: React.FC = () => {
             <DevtoolsProvider>
               <Refine
                 authProvider={authProvider}
-                dataProvider={dataProvider}
+                dataProvider={gqlDataProvider}
                 liveProvider={liveProvider}
                 routerProvider={routerProvider}
                 resources={resources}
@@ -93,6 +94,7 @@ const App: React.FC = () => {
                   liveMode: "auto",
                   syncWithLocation: true,
                   warnWhenUnsavedChanges: true,
+                  projectId: "rDGhrf-NtuDQF-mVk9uH",
                 }}
               >
                 <Routes>
@@ -109,75 +111,7 @@ const App: React.FC = () => {
                     }
                   >
                     <Route index element={<DashboardPage />} />
-                    <Route
-                      path="/calendar"
-                      element={
-                        <CalendarPageWrapper>
-                          <Outlet />
-                        </CalendarPageWrapper>
-                      }
-                    >
-                      <Route index element={null} />
-                      <Route path="show/:id" element={<CalendarShowPage />} />
-                      <Route path="edit/:id" element={<CalendarEditPage />} />
-                      <Route path="create" element={<CalendarCreatePage />} />
-                    </Route>
-                    <Route path="/scrumboard" element={<Outlet />}>
-                      <Route
-                        path="kanban"
-                        element={
-                          <KanbanPage>
-                            <Outlet />
-                          </KanbanPage>
-                        }
-                      >
-                        <Route path="create" element={<KanbanCreatePage />} />
-                        <Route path="edit/:id" element={<KanbanEditPage />} />
-                        <Route
-                          path="stages/create"
-                          element={<KanbanCreateStage />}
-                        />
-                        <Route
-                          path="stages/edit/:id"
-                          element={<KanbanEditStage />}
-                        />
-                      </Route>
-                      <Route
-                        path="sales"
-                        element={
-                          <SalesPage>
-                            <Outlet />
-                          </SalesPage>
-                        }
-                      >
-                        <Route
-                          path="create"
-                          element={
-                            <SalesCreatePage>
-                              <Outlet />
-                            </SalesCreatePage>
-                          }
-                        >
-                          <Route
-                            path="company/create"
-                            element={<CompanyCreatePage isOverModal />}
-                          />
-                        </Route>
-                        <Route path="edit/:id" element={<SalesEditPage />} />
-                        <Route
-                          path="stages/create"
-                          element={<SalesCreateStage />}
-                        />
-                        <Route
-                          path="stages/edit/:id"
-                          element={<SalesEditStage />}
-                        />
-                        <Route
-                          path=":id/finalize"
-                          element={<SalesFinalizeDeal />}
-                        />
-                      </Route>
-                    </Route>
+
                     <Route
                       path="/companies"
                       element={
@@ -255,10 +189,7 @@ const App: React.FC = () => {
                       path="/quotes/show/:id"
                       element={<QuotesShowPage />}
                     />
-                    <Route path="/administration" element={<Outlet />}>
-                      <Route path="settings" element={<SettingsPage />} />
-                      <Route path="audit-log" element={<AuditLogPage />} />
-                    </Route>
+
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
                   <Route

@@ -27,7 +27,7 @@ export const refreshTokens = async () => {
 
   try {
     const response = await request<RefreshTokenMutation>(
-      "https://api.crm.refine.dev/graphql",
+      "https://vineoback-gh-qa.caprover2.innogenio.com/graphql",
       REFRESH_TOKEN_MUTATION,
       {
         refreshToken: currentRefreshToken,

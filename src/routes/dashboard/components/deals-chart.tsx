@@ -115,14 +115,14 @@ export const DashboardDealsChart: React.FC = () => {
             gap: "8px",
           }}
         >
-          <DollarOutlined />
+          <DollarOutlined onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
           <Text size="sm" style={{ marginLeft: ".5rem" }}>
             Deals
           </Text>
         </div>
       }
       extra={
-        <Button onClick={() => list("deals")} icon={<RightCircleOutlined />}>
+        <Button onClick={() => list("deals")} icon={<RightCircleOutlined onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />}>
           See sales pipeline
         </Button>
       }

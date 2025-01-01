@@ -1,97 +1,69 @@
 import { AuthProvider } from "@refinedev/core";
 
 import type { User } from "@/graphql/schema.types";
-import { disableAutoLogin, enableAutoLogin } from "@/hooks";
-
+//import { disableAutoLogin, enableAutoLogin } from "@/hooks";
+import jwtDecode from "jwt-decode";
 import { API_BASE_URL, API_URL, client, dataProvider } from "./data";
 
 export const emails = [
-  "michael.scott@dundermifflin.com",
-  "jim.halpert@dundermifflin.com",
-  "pam.beesly@dundermifflin.com",
-  "dwight.schrute@dundermifflin.com",
-  "angela.martin@dundermifflin.com",
-  "stanley.hudson@dundermifflin.com",
-  "phyllis.smith@dundermifflin.com",
-  "kevin.malone@dundermifflin.com",
-  "oscar.martinez@dundermifflin.com",
-  "creed.bratton@dundermifflin.com",
-  "meredith.palmer@dundermifflin.com",
-  "ryan.howard@dundermifflin.com",
-  "kelly.kapoor@dundermifflin.com",
-  "andy.bernard@dundermifflin.com",
-  "toby.flenderson@dundermifflin.com",
+  "testuser1@gmail.com",
+  
 ];
 
 const randomEmail = emails[Math.floor(Math.random() * emails.length)];
 
 export const demoCredentials = {
-  email: randomEmail,
-  password: "demodemo",
+  email: "",
+  password: "",
 };
 
 export const authProvider: AuthProvider = {
-  login: async ({ email, providerName, accessToken, refreshToken }) => {
-    if (accessToken && refreshToken) {
-      client.setHeaders({
-        Authorization: `Bearer ${accessToken}`,
-      });
-
-      localStorage.setItem("access_token", accessToken);
-      localStorage.setItem("refresh_token", refreshToken);
-
-      return {
-        success: true,
-        redirectTo: "/",
-      };
-    }
-
-    if (providerName) {
-      window.location.href = `${API_BASE_URL}/auth/${providerName}`;
-
-      return {
-        success: true,
-      };
-    }
-
+  login: async ({ email, password }) => {
     try {
       const { data } = await dataProvider.custom({
         url: API_URL,
         method: "post",
         headers: {},
         meta: {
-          variables: { email },
+          variables: {
+            payload: {
+              email,
+              password,
+            },
+          },
           rawQuery: `
-                mutation Login($email: String!) {
-                    login(loginInput: {
-                      email: $email
-                    }) {
-                      accessToken,
-                      refreshToken
-                    }
-                  }
-                `,
+            query userLogin($payload: UserLoginDto!) {
+              userLogin(payload: $payload) {
+                accessToken
+                refreshToken
+              }
+            }
+          `,
         },
       });
 
+      // Save tokens to localStorage
+      const { accessToken, refreshToken } = data.userLogin;
       client.setHeaders({
-        Authorization: `Bearer ${data.login.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       });
+      localStorage.setItem("access_token", accessToken);
+      localStorage.setItem("refresh_token", refreshToken);
 
-      enableAutoLogin(email);
-      localStorage.setItem("access_token", data.login.accessToken);
-      localStorage.setItem("refresh_token", data.login.refreshToken);
+     // enableAutoLogin(email);
 
-      return {
-        success: true,
-        redirectTo: "/",
-      };
+     return {
+      success: true,
+      redirectTo: "/",
+    };
+    
     } catch (error: any) {
+      console.error("Login error:", error); // Debug log for troubleshooting
       return {
         success: false,
         error: {
-          message: "message" in error ? error.message : "Login failed",
-          name: "name" in error ? error.name : "Invalid email or password",
+          message: "Invalid login credentials. Please try again.",
+          name: "LoginError",
         },
       };
     }
@@ -108,7 +80,7 @@ export const authProvider: AuthProvider = {
                 mutation register($email: String!, $password: String!) {
                     register(registerInput: {
                       email: $email
-                        password: $password
+                      password: $password
                     }) {
                         id
                         email
@@ -118,7 +90,7 @@ export const authProvider: AuthProvider = {
         },
       });
 
-      enableAutoLogin(email);
+     // enableAutoLogin(email);
 
       return {
         success: true,
@@ -139,7 +111,7 @@ export const authProvider: AuthProvider = {
       Authorization: "",
     });
 
-    disableAutoLogin();
+   // disableAutoLogin();
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
 
@@ -158,31 +130,16 @@ export const authProvider: AuthProvider = {
     return { error };
   },
   check: async () => {
-    try {
-      await dataProvider.custom({
-        url: API_URL,
-        method: "post",
-        headers: {},
-        meta: {
-          rawQuery: `
-                    query Me {
-                        me {
-                          name
-                        }
-                      }
-                `,
-        },
-      });
-
-      return {
-        authenticated: true,
-      };
-    } catch (error) {
-      return {
-        authenticated: false,
-      };
+    const accessToken = localStorage.getItem("access_token");
+    console.log("Access Token:", accessToken);
+  
+    if (!accessToken) {
+      return { authenticated: false };
     }
+  
+    return { authenticated: true };
   },
+  
   forgotPassword: async () => {
     return {
       success: true,

@@ -94,7 +94,12 @@ export const ContactCreatePage: React.FC<PropsWithChildren> = ({
               <Button
                 style={{ paddingLeft: 0 }}
                 type="link"
-                icon={<PlusCircleOutlined />}
+                icon={
+                  <PlusCircleOutlined
+                    onPointerEnterCapture={undefined}
+                    onPointerLeaveCapture={undefined}
+                  />
+                }
                 onClick={() => {
                   replace("company-create?to=/contacts/create");
                 }}

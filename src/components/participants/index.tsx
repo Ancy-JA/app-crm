@@ -29,7 +29,7 @@ export const Participants: FC<Props> = ({ userOne, userTwo }) => {
           name={userOne.name}
         />
       </Tooltip>
-      <PlusCircleOutlined className="xs tertiary" />
+      <PlusCircleOutlined className="xs tertiary" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
       <Tooltip title={userTwo.name}>
         <CustomAvatar
           size="small"

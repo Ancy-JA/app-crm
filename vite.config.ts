@@ -14,4 +14,14 @@ export default defineConfig({
       },
     },
   },
+  server: {
+    proxy: {
+      "/graphql": {
+        target: "https://vineoback-gh-qa.caprover2.innogenio.com",
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/graphql/, "/graphql"),
+      },
+    },
+  },
 });

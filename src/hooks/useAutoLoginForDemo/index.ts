@@ -1,51 +1,38 @@
 import { useCallback, useEffect, useState } from "react";
-
 import { authProvider, emails } from "@/providers";
 
-/**
- * This hook is used to automatically login the user.
- * We use this hook to skip the login page and demonstrate the application more quickly.
- */
 export const useAutoLoginForDemo = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const login = useCallback(async () => {
     const email = localStorage.getItem("auto_login") || emails[0];
+    const password = localStorage.getItem("password");
+
+    // Ensure both email and password are present
+    if (!email || !password) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      await authProvider.login({
-        email,
-      });
+      await authProvider.login({ email, password });
     } catch (_error) {
+      console.error("Auto-login failed.");
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading]);
+  }, []);
 
   useEffect(() => {
-    const shouldLogin = localStorage.getItem("auto_login") !== "false";
+    const shouldLogin = localStorage.getItem("auto_login") === "true";
+
     if (!shouldLogin) {
       setIsLoading(false);
       return;
     }
 
     login();
-  }, []);
+  }, [login]);
 
   return { loading: isLoading };
-};
-
-/**
- *  Enable auto login feature.
- *  This is used to skip the login page and demonstrate the application more quickly.
- */
-export const enableAutoLogin = (email: string) => {
-  localStorage.setItem("auto_login", email);
-};
-
-/**
- *  Disable auto login feature.
- *  This is used to skip the login page and demonstrate the application more quickly.
- */
-export const disableAutoLogin = () => {
-  localStorage.setItem("auto_login", "false");
 };

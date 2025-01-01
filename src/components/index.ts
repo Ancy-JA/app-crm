@@ -1,4 +1,3 @@
-export * from "./calendar";
 export * from "./custom-avatar";
 export * from "./fullscreen-loading";
 export * from "./icon";

@@ -1,6 +1,6 @@
 import React, { FC, PropsWithChildren, Suspense } from "react";
 
-import { AuditOutlined, ShopOutlined, TeamOutlined } from "@ant-design/icons";
+import { AuditOutlined, ShopOutlined, TeamOutlined, DollarOutlined } from "@ant-design/icons";
 import { AreaConfig } from "@ant-design/plots";
 import { Card, Skeleton } from "antd";
 
@@ -10,7 +10,7 @@ import styles from "./index.module.css";
 
 const Area = React.lazy(() => import("@ant-design/plots/es/components/area"));
 
-type Type = "companies" | "contacts" | "deals";
+type Type = "companies" | "contacts" | "deals" | "amount";
 
 export const DashboardTotalCountCard: React.FC<{
   resource: Type;
@@ -152,6 +152,8 @@ const variants: {
           style={{
             color: "#1677FF",
           }}
+          onPointerEnterCapture={undefined}
+          onPointerLeaveCapture={undefined}
         />
       </IconWrapper>
     ),
@@ -189,6 +191,8 @@ const variants: {
           style={{
             color: "#52C41A",
           }}
+          onPointerEnterCapture={undefined}
+          onPointerLeaveCapture={undefined}
         />
       </IconWrapper>
     ),
@@ -230,10 +234,63 @@ const variants: {
           style={{
             color: "#FA541C",
           }}
+          onPointerEnterCapture={undefined}
+          onPointerLeaveCapture={undefined}
         />
       </IconWrapper>
     ),
     title: "Total deals in pipeline",
+    data: [
+      {
+        index: "1",
+        value: 1000,
+      },
+      {
+        index: "2",
+        value: 1300,
+      },
+      {
+        index: "3",
+        value: 1200,
+      },
+      {
+        index: "4",
+        value: 2000,
+      },
+      {
+        index: "5",
+        value: 800,
+      },
+      {
+        index: "6",
+        value: 1700,
+      },
+      {
+        index: "7",
+        value: 1400,
+      },
+      {
+        index: "8",
+        value: 1800,
+      },
+    ],
+  },
+  amount: {
+    primaryColor: "#fff000",
+    secondaryColor: "#fff00060",
+    icon: (
+      <IconWrapper color="#fff00030">
+        <DollarOutlined
+          className="md"
+          style={{
+            color: "#fff000",
+          }}
+          onPointerEnterCapture={undefined}
+          onPointerLeaveCapture={undefined}
+        />
+      </IconWrapper>
+    ),
+    title: "Total amount received",
     data: [
       {
         index: "1",

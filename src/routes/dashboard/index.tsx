@@ -1,124 +1,130 @@
 import React from "react";
+import { useTable } from "@refinedev/core";
+import { Table, Input, Typography, Space, Tag } from "antd";
 
-import { useCustom } from "@refinedev/core";
-
-import { Col, Row } from "antd";
-
-import { CalendarUpcomingEvents } from "@/components";
-import { DashboardTotalCountsQuery } from "@/graphql/types";
-
-import {
-  CompaniesMap,
-  DashboardDealsChart,
-  DashboardLatestActivities,
-  DashboardTasksChart,
-  DashboardTotalCountCard,
-  DashboardTotalRevenueChart,
-} from "./components";
-import { DASHBOARD_TOTAL_COUNTS_QUERY } from "./queries";
+const { Title } = Typography;
 
 export const DashboardPage: React.FC = () => {
-  const { data, isLoading } = useCustom<DashboardTotalCountsQuery>({
-    url: "",
-    method: "get",
-    meta: { gqlQuery: DASHBOARD_TOTAL_COUNTS_QUERY },
-  });
+    const { tableProps, setFilters, error } = useTable({
+        resource: "getBoxHistoryAdmin",
+        meta: {
+            fields: [
+                "total",
+                "boxes { _id user { name phone } created_at delivery_date box_type status box_wines { name box_count } }",
+            ],
+            dataProviderName: "gqlDataProvider",
+        },
+        filters: {
+            initial: [],
+        },
+        pagination: {
+            mode: "server",
+        },
+    });
 
-  return (
-    <div className="page-container">
-      <Row gutter={[32, 32]}>
-        <Col xs={24} sm={24} xl={8}>
-          <DashboardTotalCountCard
-            resource="companies"
-            isLoading={isLoading}
-            totalCount={data?.data["companies"].totalCount}
-          />
-        </Col>
-        <Col xs={24} sm={24} xl={8}>
-          <DashboardTotalCountCard
-            resource="contacts"
-            isLoading={isLoading}
-            totalCount={data?.data["contacts"].totalCount}
-          />
-        </Col>
-        <Col xs={24} sm={24} xl={8}>
-          <DashboardTotalCountCard
-            resource="deals"
-            isLoading={isLoading}
-            totalCount={data?.data["deals"].totalCount}
-          />
-        </Col>
-      </Row>
+    if (error) {
+        return <div>Error: {error.message}</div>;
+    }
 
-      <Row
-        gutter={[32, 32]}
-        style={{
-          marginTop: "32px",
-        }}
-      >
-        <Col
-          xs={24}
-          sm={24}
-          xl={8}
-          style={{
-            height: "432px",
-          }}
-        >
-          <DashboardTotalRevenueChart />
-        </Col>
-        <Col
-          xs={24}
-          sm={24}
-          xl={16}
-          style={{
-            height: "432px",
-          }}
-        >
-          <DashboardDealsChart />
-        </Col>
-      </Row>
+    const columns = [
+        {
+            title: "User Details",
+            dataIndex: "user",
+            key: "userDetails",
+            render: (user: { name: string; phone: string }) => (
+                <Space>
+                    <div
+                        style={{
+                            backgroundColor: "#87d068",
+                            borderRadius: "50%",
+                            width: 32,
+                            height: 32,
+                            color: "white",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                        }}
+                    >
+                        {user?.name?.slice(0, 2).toUpperCase() || "N/A"}
+                    </div>
+                    <div>
+                        <strong>{user?.name || "Unknown"}</strong> <br />
+                        {user?.phone || "N/A"}
+                    </div>
+                </Space>
+            ),
+        },
+        {
+            title: "Wine in Box",
+            dataIndex: "box_wines",
+            key: "wineBox",
+            render: (wineBox: { name: string; box_count: number }[]) => (
+                <div>
+                    {wineBox.map((wine, index) => (
+                        <div
+                            key={index}
+                            style={{ display: "flex", justifyContent: "space-between" }}
+                        >
+                            {wine.name}
+                            <Tag color="green">{wine.box_count} times</Tag>
+                        </div>
+                    ))}
+                </div>
+            ),
+        },
+        {
+            title: "Box Creation Date",
+            dataIndex: "created_at",
+            key: "creationDate",
+        },
+        {
+            title: "Box Delivery Date",
+            dataIndex: "delivery_date",
+            key: "deliveryDate",
+        },
+        {
+            title: "Box Type",
+            dataIndex: "box_type",
+            key: "boxType",
+        },
+        {
+            title: "Status",
+            dataIndex: "status",
+            key: "status",
+            render: (status: string) => (
+                <span style={{ color: status === "Rejected" ? "red" : "green" }}>
+                    {status}
+                </span>
+            ),
+        },
+    ];
 
-      <Row
-        gutter={[32, 32]}
-        style={{
-          marginTop: "32px",
-        }}
-      >
-        <Col xs={24} sm={24} xl={14} xxl={16}>
-          <DashboardLatestActivities />
-        </Col>
-        <Col xs={24} sm={24} xl={10} xxl={8}>
-          <CalendarUpcomingEvents showGoToListButton />
-        </Col>
-      </Row>
+    const handleSearch = (value: string) => {
+        setFilters([
+            {
+                field: "search",
+                operator: "contains",
+                value,
+            },
+        ]);
+    };
 
-      <Row
-        gutter={[32, 32]}
-        style={{
-          marginTop: "32px",
-        }}
-      >
-        <Col
-          xs={24}
-          sm={24}
-          xl={8}
-          style={{
-            height: "448px",
-          }}
+    return (
+        <div
+            style={{
+                padding: "24px",
+                backgroundColor: "#f0f2f5",
+                minHeight: "100vh",
+            }}
         >
-          <DashboardTasksChart />
-        </Col>
-        <Col
-          xs={24}
-          sm={24}
-          xl={16}
-          style={{
-            height: "448px",
-          }}
-        >
-          <CompaniesMap />
-        </Col>
-      </Row>
-    </div>
-  );
+            <Title level={4}>Wine Box History</Title>
+            <Input.Search
+                placeholder="🔍 Search..."
+                onSearch={handleSearch}
+                style={{ marginBottom: 16, maxWidth: 400 }}
+                allowClear
+            />
+            <Table {...tableProps} columns={columns} bordered />
+        </div>
+    );
 };

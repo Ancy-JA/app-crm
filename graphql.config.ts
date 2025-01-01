@@ -1,7 +1,7 @@
 import type { IGraphQLConfig } from "graphql-config";
 
 const config: IGraphQLConfig = {
-  schema: "https://api.crm.refine.dev/graphql",
+  schema: "https://vineoback-gh-qa.caprover2.innogenio.com/graphql",
   extensions: {
     codegen: {
       hooks: {

@@ -72,7 +72,14 @@ export const Sider: React.FC = () => {
           >
             <SubMenu
               key={item.key}
-              icon={icon ?? <UnorderedListOutlined />}
+              icon={
+                icon ?? (
+                  <UnorderedListOutlined
+                    onPointerEnterCapture={undefined}
+                    onPointerLeaveCapture={undefined}
+                  />
+                )
+              }
               title={label}
             >
               {renderTreeView(children, selectedKey)}
@@ -97,7 +104,15 @@ export const Sider: React.FC = () => {
         >
           <Menu.Item
             key={item.key}
-            icon={icon ?? (isRoute && <UnorderedListOutlined />)}
+            icon={
+              icon ??
+              (isRoute && (
+                <UnorderedListOutlined
+                  onPointerEnterCapture={undefined}
+                  onPointerLeaveCapture={undefined}
+                />
+              ))
+            }
           >
             <Link to={route ?? ""}>{label}</Link>
             {!siderCollapsed && isSelected && (
@@ -182,7 +197,12 @@ export const Sider: React.FC = () => {
           style={drawerButtonStyles}
           size="large"
           onClick={() => setMobileSiderOpen(true)}
-          icon={<BarsOutlined />}
+          icon={
+            <BarsOutlined
+              onPointerEnterCapture={undefined}
+              onPointerLeaveCapture={undefined}
+            />
+          }
         />
       </>
     );
@@ -232,12 +252,16 @@ export const Sider: React.FC = () => {
                 style={{
                   color: token.colorPrimary,
                 }}
+                onPointerEnterCapture={undefined}
+                onPointerLeaveCapture={undefined}
               />
             ) : (
               <LeftOutlined
                 style={{
                   color: token.colorPrimary,
                 }}
+                onPointerEnterCapture={undefined}
+                onPointerLeaveCapture={undefined}
               />
             )}
           </Button>
