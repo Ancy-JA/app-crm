@@ -56,3 +56,8 @@ export const USER_LOGIN_QUERY = `
     }
   }
 `;
+export const GET_BOX_WINE_PRINT_CARD = gql`
+    query getBoxWinePrintCard($box: String!) {
+        getBoxWinePrintCard(box: $box)
+    }
+`;

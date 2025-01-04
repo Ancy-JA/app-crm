@@ -1,18 +1,7 @@
-import React from "react";
-import { useTable, HttpError } from "@refinedev/core";
+import React, { useState, useEffect } from "react";
+import { useTable } from "@refinedev/core";
 import { Table, Input, Typography, Space, Tag } from "antd";
-import {
-    DownloadOutlined,
-    EyeOutlined,
-    WhatsAppOutlined,
-    CheckOutlined,
-    CloseOutlined,
-    EditOutlined,
-    CarOutlined,
-  } from "@ant-design/icons";
-  
-
-
+import ActionButtons from "@/routes/dashboard/components/actionButtons";
 const { Title } = Typography;
 
 export const DashboardPage: React.FC = () => {
@@ -23,8 +12,6 @@ export const DashboardPage: React.FC = () => {
         current,
         setCurrent,
         setPageSize,
-        sorter,
-        filters,
     } = useTable({
         resource: "getBoxHistoryAdmin",
         meta: {
@@ -32,7 +19,7 @@ export const DashboardPage: React.FC = () => {
                 "total",
                 "boxes { _id user { name phone } created_at delivery_date box_type status box_wines { name box_count } }",
             ],
-            dataProviderName: "gqlDataProvider",
+            dataProviderName: "gqlDataProvider", // Custom provider
         },
         pagination: {
             mode: "server",
@@ -42,8 +29,8 @@ export const DashboardPage: React.FC = () => {
     const { data, isError, error } = tableQueryResult || {};
 
     const transformedData =
-        data?.data?.map((item: any, index: number) => ({
-            key: item._id || index,
+        data?.data?.map((item: any) => ({
+            key: item._id,
             ...item,
         })) || [];
 
@@ -126,106 +113,42 @@ export const DashboardPage: React.FC = () => {
         {
             title: "Behavior",
             key: "behavior",
-            render: () => (
-              <Space size="middle" style={{ gap: "12px" }}>
-                {/* Download Icon */}
-                <div
-                  className="icon-circle"
-                  style={{
-                    backgroundColor: "#ba68c8",
-                    borderRadius: "50%",
-                    padding: " 0.5rem 0.625rem",
-                  }}
-                >
-                  <DownloadOutlined style={{ color: "white", fontSize: "16px" }} />
-                </div>
-          
-                {/* Eye Icon */}
-                <div
-                  className="icon-circle"
-                  style={{
-                    backgroundColor: "#ffb74d",
-                    borderRadius: "50%",
-                    padding: "0.5rem 0.625rem",
-                  }}
-                >
-                  <EyeOutlined style={{ color: "white", fontSize: "16px" }} />
-                </div>
-          
-                {/* WhatsApp Icon */}
-                <div
-                  className="icon-circle"
-                  style={{
-                    backgroundColor: "#81c784",
-                    borderRadius: "50%",
-                    padding: "0.5rem 0.625rem",
-                  }}
-                >
-                  <WhatsAppOutlined style={{ color: "white", fontSize: "16px" }} />
-                </div>
-          
-                {/* Check Icon */}
-                <div
-                  className="icon-circle"
-                  style={{
-                    backgroundColor: "#e0e0e0",
-                    borderRadius: "50%",
-                    padding: "0.5rem 0.625rem",
-                  }}
-                >
-                  <CheckOutlined style={{ color: "#9e9e9e", fontSize: "16px" }} />
-                </div>
-          
-                {/* Close Icon */}
-                <div
-                  className="icon-circle"
-                  style={{
-                    backgroundColor: "#e0e0e0",
-                    borderRadius: "50%",
-                    padding: "0.5rem 0.625rem",
-                  }}
-                >
-                  <CloseOutlined style={{ color: "#9e9e9e", fontSize: "16px" }} />
-                </div>
-          
-                {/* Edit Icon */}
-                <div
-                  className="icon-circle"
-                  style={{
-                    backgroundColor: "#e0e0e0",
-                    borderRadius: "50%",
-                    padding: "0.5rem 0.625rem",
-                  }}
-                >
-                  <EditOutlined style={{ color: "#9e9e9e", fontSize: "16px" }} />
-                </div>
-          
-                {/* Car Icon */}
-                <div
-                  className="icon-circle"
-                  style={{
-                    backgroundColor: "#e0e0e0",
-                    borderRadius: "50%",
-                    padding: "0.5rem 0.625rem",
-                  }}
-                >
-                  <CarOutlined style={{ color: "#9e9e9e", fontSize: "16px" }} />
-                </div>
-              </Space>
+            render: (record: any) => (
+                <ActionButtons
+                    boxId={record.key}
+                    onView={() => console.log(`Viewing box ${record.key}`)}
+                    phone={record.user?.phone || ""}
+                />
             ),
-          }
-          
+        },
     ];
 
-    const handleSearch = (value: string) => {
-        setFilters([
-            {
-                field: "search",
-                operator: "contains",
-                value,
-            },
-        ]);
-    };
+    const [searchTerm, setSearchTerm] = useState<string>("");
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("");
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+        }, 500);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [searchTerm]);
+
+    useEffect(() => {
+        if (debouncedSearchTerm) {
+            setFilters([
+                {
+                    field: "searchString",
+                    operator: "contains",
+                    value: debouncedSearchTerm,
+                },
+            ]);
+        } else {
+            setFilters([]);
+        }
+    }, [debouncedSearchTerm, setFilters]);
 
     if (isError) {
         return <div>Error: {error?.message || "Something went wrong"}</div>;
@@ -234,7 +157,7 @@ export const DashboardPage: React.FC = () => {
     return (
         <div
             style={{
-                padding: "0.625rem",
+                padding: "1rem",
                 backgroundColor: "#f0f2f5",
                 minHeight: "100vh",
             }}
@@ -242,27 +165,28 @@ export const DashboardPage: React.FC = () => {
             <Title level={4}>Wine Box History</Title>
             <Input.Search
                 placeholder="🔍 Search..."
-                onSearch={handleSearch}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 style={{ marginBottom: 16, maxWidth: 400 }}
                 allowClear
             />
-             <div style={{ overflowX: "auto" }}>
-            <Table
-                dataSource={transformedData}
-                columns={columns}
-                bordered
-                pagination={{
-                    current,
-                    pageSize,
-                    total: data?.total || 0,
-                    onChange: (page, pageSize) => {
-                        setCurrent(page);
-                        setPageSize(pageSize);
-                    },
-                }}
-                scroll={{ x: "max-content" }} // Enables horizontal scroll
-            />
-        </div>
+            <div style={{ overflowX: "auto" }}>
+                <Table
+                    dataSource={transformedData}
+                    columns={columns}
+                    bordered
+                    pagination={{
+                        current,
+                        pageSize,
+                        total: data?.total || 0,
+                        onChange: (page, pageSize) => {
+                            setCurrent(page);
+                            setPageSize(pageSize);
+                        },
+                    }}
+                    scroll={{ x: "max-content" }}
+                />
+            </div>
         </div>
     );
 };

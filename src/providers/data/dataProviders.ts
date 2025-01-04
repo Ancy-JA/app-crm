@@ -1,10 +1,11 @@
-import { GET_BOX_HISTORY_ADMIN } from "./queries";
+import { GET_BOX_HISTORY_ADMIN, GET_BOX_WINE_PRINT_CARD } from "./queries";
 import { request } from "graphql-request";
 import { DataProvider, CrudFilter } from "@refinedev/core";
 import { GetBoxHistoryAdminResponse } from "@/routes/quotes/components/types";
 
 const API_URL = "https://vineoback-gh-qa.caprover2.innogenio.com/graphql";
 const accessToken = localStorage.getItem("access_token");
+
 export const gqlDataProvider: DataProvider = {
     getList: async ({ pagination, filters }): Promise<{ data: any[]; total: number }> => {
         try {
@@ -35,11 +36,12 @@ export const gqlDataProvider: DataProvider = {
             const response: GetBoxHistoryAdminResponse = await request<GetBoxHistoryAdminResponse>(
                 API_URL,
                 GET_BOX_HISTORY_ADMIN,
-                variables,{
+                variables,
+                {
                     Authorization: `Bearer ${accessToken}`,
                 }
             );
-            
+
             console.log("GraphQL Response:", response);
 
             // Extract data and total
@@ -56,6 +58,33 @@ export const gqlDataProvider: DataProvider = {
 
             throw new Error("Failed to fetch data.");
         }
+    },
+
+    custom: async ({ resource, meta }: { resource: string; meta: any }) => {
+        const query = meta?.query || GET_BOX_WINE_PRINT_CARD; // Default to GET_BOX_WINE_PRINT_CARD
+        const variables = meta?.variables || {}; // Pass variables dynamically
+
+        const headers = {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        };
+
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...headers,
+            },
+            body: JSON.stringify({ query, variables }),
+        });
+
+        const result = await response.json();
+
+        if (result.errors) {
+            console.error("GraphQL Errors:", result.errors);
+            throw new Error(result.errors[0]?.message || "GraphQL query error");
+        }
+
+        return result.data;
     },
 
     getOne: async () => {
