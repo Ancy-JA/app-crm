@@ -2,11 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useTable } from "@refinedev/core";
 import { Table, Input, Typography, Space, Tag } from "antd";
 import ActionButtons from "@/routes/dashboard/components/actionButtons";
+import ModalView from "@/routes/dashboard/components/ModalView"; // Import ModalView
+import { Box } from "@/routes/types"; // Import Box type
+
 const { Title } = Typography;
 
 export const DashboardPage: React.FC = () => {
     const {
-        tableQueryResult,
+        tableQuery,
         setFilters,
         pageSize,
         current,
@@ -16,23 +19,36 @@ export const DashboardPage: React.FC = () => {
         resource: "getBoxHistoryAdmin",
         meta: {
             fields: [
-                "total",
-                "boxes { _id user { name phone } created_at delivery_date box_type status box_wines { name box_count } }",
+                "*", // Hypothetical wildcard to fetch everything
             ],
-            dataProviderName: "gqlDataProvider", // Custom provider
         },
         pagination: {
             mode: "server",
         },
     });
 
-    const { data, isError, error } = tableQueryResult || {};
+    const { data, isError, error } = tableQuery || {};
 
     const transformedData =
         data?.data?.map((item: any) => ({
             key: item._id,
             ...item,
         })) || [];
+
+    // State for Modal
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [selectedBox, setSelectedBox] = useState<Box | null>(null);
+
+    // Modal Handlers
+    const openModal = (box: Box) => {
+        setSelectedBox(box);
+        setIsModalVisible(true);
+    };
+
+    const closeModal = () => {
+        setSelectedBox(null);
+        setIsModalVisible(false);
+    };
 
     const columns = [
         {
@@ -116,7 +132,7 @@ export const DashboardPage: React.FC = () => {
             render: (record: any) => (
                 <ActionButtons
                     boxId={record.key}
-                    onView={() => console.log(`Viewing box ${record.key}`)}
+                    onView={() => openModal(record)}
                     phone={record.user?.phone || ""}
                 />
             ),
@@ -187,6 +203,14 @@ export const DashboardPage: React.FC = () => {
                     scroll={{ x: "max-content" }}
                 />
             </div>
+            {/* Render ModalView */}
+            {isModalVisible && (
+                <ModalView
+                    selectedBox={selectedBox}
+                    closeModal={closeModal}
+                    isVisible={isModalVisible}
+                />
+            )}
         </div>
     );
 };

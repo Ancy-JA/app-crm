@@ -1,90 +1,116 @@
 import { GET_BOX_HISTORY_ADMIN, GET_BOX_WINE_PRINT_CARD } from "./queries";
 import { request } from "graphql-request";
-import { DataProvider, CrudFilter } from "@refinedev/core";
-import { GetBoxHistoryAdminResponse } from "@/routes/quotes/components/types";
+import { DataProvider, CrudFilter, CustomParams, CustomResponse, BaseRecord } from "@refinedev/core";
+import { GetBoxHistoryAdminResponse } from "@/routes/types";
 
 const API_URL = "https://vineoback-gh-qa.caprover2.innogenio.com/graphql";
-const accessToken = localStorage.getItem("access_token");
-
-export const gqlDataProvider: DataProvider = {
+interface CustomDataProvider extends DataProvider {
+    getPdf?: (boxId: string) => Promise<string>;
+}
+export const gqlDataProvider: CustomDataProvider = {
     getList: async ({ pagination, filters }): Promise<{ data: any[]; total: number }> => {
         try {
             const { current = 1, pageSize = 10 } = pagination ?? {};
 
-            // Type guard to filter for objects with a 'field' property
-            const hasField = (filter: CrudFilter): filter is CrudFilter & { field: string; value: any } => {
-                return "field" in filter && "value" in filter;
-            };
-
-            // Extract the searchString from filters
-            const searchFilter = filters?.find(hasField)?.field === "searchString"
-                ? filters?.find(hasField)
-                : undefined;
+            const searchFilter = filters?.find(
+                (filter: CrudFilter) => "field" in filter && filter.field === "searchString"
+            );
 
             const searchString = searchFilter?.value || "";
 
-            // GraphQL variables
             const variables = {
                 searchString,
                 page: current,
                 pageSize,
             };
 
-            console.log("Sending GraphQL request with variables:", variables);
-
-            // Use the response type
             const response: GetBoxHistoryAdminResponse = await request<GetBoxHistoryAdminResponse>(
                 API_URL,
                 GET_BOX_HISTORY_ADMIN,
                 variables,
                 {
-                    Authorization: `Bearer ${accessToken}`,
+                    Authorization: `Bearer ${localStorage.getItem("access_token")}`,
                 }
             );
 
-            console.log("GraphQL Response:", response);
-
-            // Extract data and total
             const data = response.getBoxHistoryAdmin.boxes;
             const total = response.getBoxHistoryAdmin.total;
 
             return { data, total };
         } catch (error) {
-            if (error instanceof Error) {
-                console.error("Error:", error.message);
-            } else {
-                console.error("Unexpected error:", error);
-            }
-
+            console.error("Error in getList:", error);
             throw new Error("Failed to fetch data.");
         }
     },
 
-    custom: async ({ resource, meta }: { resource: string; meta: any }) => {
-        const query = meta?.query || GET_BOX_WINE_PRINT_CARD; // Default to GET_BOX_WINE_PRINT_CARD
-        const variables = meta?.variables || {}; // Pass variables dynamically
-
-        const headers = {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        };
-
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                ...headers,
-            },
-            body: JSON.stringify({ query, variables }),
-        });
-
-        const result = await response.json();
-
-        if (result.errors) {
-            console.error("GraphQL Errors:", result.errors);
-            throw new Error(result.errors[0]?.message || "GraphQL query error");
+    custom: async <TData extends BaseRecord = BaseRecord, TQuery = unknown, TPayload = unknown>({
+        url,
+        method,
+        meta,
+    }: CustomParams<TQuery, TPayload>): Promise<CustomResponse<TData>> => {
+        try {
+            const headers = {
+                Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+                ...(meta?.headers || {}),
+            };
+    
+            const response = await fetch(url, {
+                method: method || "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...headers,
+                },
+                body: JSON.stringify({
+                    query: meta?.query,
+                    variables: meta?.variables,
+                }),
+            });
+    
+            const result = await response.json();
+    
+            if (result.errors) {
+                console.error("GraphQL Errors:", result.errors);
+                throw new Error(result.errors[0]?.message || "GraphQL query error");
+            }
+    
+            return {
+                data: result.data as TData,
+            };
+        } catch (error) {
+            console.error("Custom query error:", error);
+            throw error;
         }
+    },
+    getPdf: async (boxId: string): Promise<string> => {
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+                },
+                body: JSON.stringify({
+                    query: `
+                        query getBoxWinePrintCard($box: String!) {
+                            getBoxWinePrintCard(box: $box)
+                        }
+                    `,
+                    variables: { box: boxId },
+                }),
+            });
 
-        return result.data;
+            const result = await response.json();
+
+            if (result.errors) {
+                console.error("GraphQL Errors:", result.errors);
+                throw new Error(result.errors[0]?.message || "Failed to fetch PDF data.");
+            }
+
+            return result.data.getBoxWinePrintCard;
+        } catch (error) {
+            console.error("Error in getPdf:", error);
+            throw new Error("Failed to fetch PDF data.");
+        }
     },
 
     getOne: async () => {

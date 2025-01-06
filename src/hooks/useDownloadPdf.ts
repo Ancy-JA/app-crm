@@ -1,51 +1,35 @@
-import { useCallback } from "react";
-import { useCustom } from "@refinedev/core";
+import { useState, useCallback } from "react";
+import { gqlDataProvider } from "@/providers/data/dataProviders";
 import { downloadPdf } from "@/utilities/download";
 
-interface GetBoxWinePrintCardResponse {
-    data: {
-        getBoxWinePrintCard: string; // The GraphQL query returns a base64-encoded PDF string
-    };
-}
-
 const useDownloadPdf = (boxId: string | number) => {
-    const triggerDownload = useCallback(async () => {
-        try {
-            const response = await fetch("https://vineoback-gh-qa.caprover2.innogenio.com/graphql", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-                },
-                body: JSON.stringify({
-                    query: `
-                        query getBoxWinePrintCard($box: String!) {
-                            getBoxWinePrintCard(box: $box)
-                        }
-                    `,
-                    variables: { box: String(boxId) },
-                }),
-            });
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [error, setError] = useState<Error | null>(null);
 
-            const result = await response.json();
-            if (result.errors) {
-                throw new Error(result.errors[0]?.message || "Failed to fetch PDF");
+    const triggerDownload = useCallback(async () => {
+        setIsDownloading(true);
+        setError(null);
+
+        try {
+            if (!gqlDataProvider.getPdf) {
+                throw new Error("The getPdf method is not implemented in the data provider.");
             }
 
-            const pdfData = result.data.getBoxWinePrintCard;
+            const pdfData = await gqlDataProvider.getPdf(String(boxId)); // Use getPdf
             if (pdfData) {
-                downloadPdf(pdfData, `box_${boxId}`);
+                downloadPdf(pdfData, `box_${boxId}`); // Trigger the download
             } else {
                 throw new Error("No data received for download.");
             }
-        } catch (error) {
+        } catch (err) {
+            const error = err as Error;
             console.error("Error during PDF download:", error);
+            setError(error);
+        } finally {
+            setIsDownloading(false);
         }
     }, [boxId]);
 
-    return {
-        triggerDownload,
-    };
+    return { triggerDownload, isDownloading, error };
 };
-
 export default useDownloadPdf;

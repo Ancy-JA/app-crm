@@ -45,7 +45,10 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ boxId, onView, phone }) =
                     padding: "0.5rem 0.625rem",
                     cursor: "pointer",
                 }}
-                onClick={onView}
+                onClick={() => {
+                    console.log("Eye icon clicked for boxId:", boxId); // Debug log
+                    onView();
+                }}
             >
                 <EyeOutlined style={{ color: "white", fontSize: "16px" }} />
             </div>

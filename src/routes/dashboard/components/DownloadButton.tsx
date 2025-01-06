@@ -7,17 +7,13 @@ interface DownloadButtonProps {
 }
 
 const DownloadButton: React.FC<DownloadButtonProps> = ({ boxId }) => {
-    const { triggerDownload } = useDownloadPdf(boxId);
+    const { triggerDownload, isDownloading } = useDownloadPdf(boxId);
 
-    const handleClick = async () => {
-        try {
-            await triggerDownload(); // Trigger the download process
-        } catch (error) {
-            console.error("Error downloading PDF:", error); // Log any errors
-        }
-    };
-
-    return <Button onClick={handleClick}>Download PDF</Button>;
+    return (
+        <Button onClick={triggerDownload} disabled={isDownloading} type="primary">
+            {isDownloading ? "Downloading..." : "Download PDF"}
+        </Button>
+    );
 };
 
 export default DownloadButton;
