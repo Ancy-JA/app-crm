@@ -6,31 +6,43 @@ import graphqlDataProvider, {
 import { createClient } from "graphql-ws";
 
 import { axiosInstance } from "./axios";
-
+import { AxiosError } from "axios";
 export const API_BASE_URL = "https://vineoback-gh-qa.caprover2.innogenio.com/graphql";
 export const API_URL = `${API_BASE_URL}`;
 export const WS_URL = "wss://vineoback-gh-qa.caprover2.innogenio.com/graphql";
 
 export const client = new GraphQLClient(API_URL, {
-  fetch: async (url: string, options: any) => {
-    try {
-      const response = await axiosInstance.request({
-        data: options.body,
-        url,
-        ...options,
-      });
+  
 
-      return { ...response, data: response.data };
-    } catch (error: any) {
-      const messages = error?.map((error: any) => error?.message)?.join("");
-      const code = error?.[0]?.extensions?.code;
+fetch: async (url: string, options: any) => {
+  try {
+    const response = await axiosInstance({
+      method: options.method || 'POST',
+      url,
+      headers: options.headers || {},
+      data: options.body || {},
+    });
+
+    return response;
+  } catch (error: unknown) {
+    if (error instanceof AxiosError) {
+      console.error("GraphQL Fetch Error:", error.response?.data || error.message);
+      const errors = error.response?.data?.errors || [];
+      const statusCode = error.response?.status || 500;
 
       return Promise.reject({
-        message: messages || JSON.stringify(error),
-        statusCode: code || 500,
+        message: errors.map((err: any) => err?.message).join(", ") || "Unknown Error",
+        statusCode,
+        errors,
       });
+    } else {
+      console.error("Unexpected Error:", error);
+      throw error; // Re-throw if it's not an Axios error
     }
-  },
+  }
+}
+
+  
 });
 
 export const wsClient = createClient({

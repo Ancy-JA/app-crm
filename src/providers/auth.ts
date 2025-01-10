@@ -2,7 +2,7 @@ import { AuthProvider } from "@refinedev/core";
 
 import type { User } from "@/graphql/schema.types";
 //import { disableAutoLogin, enableAutoLogin } from "@/hooks";
-import jwtDecode from "jwt-decode";
+//import jwtDecode from "jwt-decode";
 import { API_BASE_URL, API_URL, client, dataProvider } from "./data";
 
 export const emails = [
@@ -154,30 +154,56 @@ export const authProvider: AuthProvider = {
   },
   getIdentity: async () => {
     try {
-      const { data } = await dataProvider.custom<{ me: User }>({
+      const { data } = await dataProvider.custom({
         url: API_URL,
         method: "post",
         headers: {},
         meta: {
           rawQuery: `
-                    query Me {
-                        me {
-                            id,
-                            name,
-                            email,
-                            phone,
-                            jobTitle,
-                            timezone
-                            avatarUrl
-                        }
-                      }
-                `,
+            query getBoxHistoryAdmin($searchString: String!, $page: Float!, $pageSize: Float!) {
+              getBoxHistoryAdmin(searchString: $searchString, page: $page, pageSize: $pageSize) {
+                total
+                boxes {
+                  _id
+                  user {
+                    _id
+                    email
+                    name
+                    phone
+                    house
+                    city
+                    country
+                    zipcode
+                  }
+                  created_at
+                  delivery_date
+                  status
+                  box_type
+                  box_wines {
+                    _id
+                    name
+                    box_count
+                  }
+                }
+              }
+            }
+          `,
+          variables: {
+            searchString: "", // Replace with your dynamic search value
+            page: 1,
+            pageSize: 10,
+          },
         },
       });
-
-      return data.me;
+  
+      console.log("Box History Admin Data:", data); // Debug log for fetched data
+      return data.getBoxHistoryAdmin; // Return the fetched data
     } catch (error) {
+      console.error("Box History Admin Error:", error); // Debug log for errors
       return undefined;
     }
   },
+  
 };
+
+

@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc && cross-env NODE_OPTIONS=--max_old_space_size=4096 refine build",
     "codegen": "graphql-codegen",
-    "dev": "refine dev",
+    "dev":  "vite --port 3000",
     "format": "prettier src --write",
     "lint": "eslint src --fix",
     "preview": "refine start",

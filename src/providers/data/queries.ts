@@ -1,13 +1,14 @@
 import gql from "graphql-tag";
 
-export const REFRESH_TOKEN_MUTATION = gql`
-    mutation refreshToken($refreshToken: String!) {
-        refreshToken(refreshToken: $refreshToken) {
-            accessToken
-            refreshToken
-        }
+export const REFRESH_TOKEN_QUERY = `
+  query getAccessTokenFromRefresh($access: String!, $refresh: String!) {
+    getAccessToken(accessToken: $access, refreshToken: $refresh) {
+      accessToken
+      refreshToken
     }
+  }
 `;
+
 // providers/data/queries.ts
 
 export const GET_BOX_HISTORY_ADMIN = `
