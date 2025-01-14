@@ -19,7 +19,7 @@ export const DashboardPage: React.FC = () => {
         resource: "getBoxHistoryAdmin",
         meta: {
             fields: [
-                "*", // Hypothetical wildcard to fetch everything
+                "*", // to fetch everything
             ],
         },
         pagination: {

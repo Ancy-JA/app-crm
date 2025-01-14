@@ -1,124 +1,62 @@
 import React from "react";
-import { Modal, Input, Row, Col } from "antd";
-import { Box } from "@/routes/types";
+import { Modal, Input, Row, Col, Form } from "antd";
+import { ModalViewProps , UserDetails , Field } from "@/routes/types";
 
-interface ModalViewProps {
-    selectedBox: Box | null;
-    closeModal: () => void;
-    isVisible: boolean;
-}
+const inputStyle: React.CSSProperties = {
+    backgroundColor: "#f3f4f6",
+    pointerEvents: "none",
+    border: "0.0625rem solid #d9d9d9",
+};
 
 const ModalView: React.FC<ModalViewProps> = ({ selectedBox, closeModal, isVisible }) => {
+    const [form] = Form.useForm();
+
     if (!selectedBox) return null;
+
+    const { user } = selectedBox;
+
+    const fields: Field[] = [
+        { label: "Full Name", name: "name", value: user?.name || "" },
+        { label: "Full Address", name: "house", value: user?.house || "" },
+        { label: "Email", name: "email", value: user?.email || "" },
+        { label: "Country", name: "country", value: user?.country || "" },
+        { label: "Postal Code", name: "zipcode", value: user?.zipcode || "" },
+        { label: "City", name: "city", value: user?.city || "" },
+        { label: "Phone", name: "phone", value: user?.phone || "" },
+        { label: "Password", name: "password", value: "******" },
+    ];
+
+    // Initialize form fields with data
+    React.useEffect(() => {
+        if (user) {
+            const initialValues = fields.reduce((acc, field) => {
+                acc[field.name] = field.value;
+                return acc;
+            }, {} as Record<keyof UserDetails, string>);
+            form.setFieldsValue(initialValues);
+        }
+    }, [user, form]);
 
     return (
         <Modal
-            title={<span style={{ fontWeight: "bold" }}>Client Details</span>} // Customize the title
-            open={isVisible} // Updated to use `open` instead of `visible`
+            title={<div style={{ fontWeight: "bold" }}>Client Details</div>}
+            open={isVisible}
             onCancel={closeModal}
             footer={null}
             centered
-            closeIcon={<span style={{ fontSize: "16px", cursor: "pointer" }}>×</span>} // Customize the close icon
+            closeIcon={<div style={{ fontSize: "1rem", cursor: "pointer" }}>×</div>}
         >
-            <Row gutter={[16, 16]}>
-                <Col span={12}>
-                    <label>Full Name</label>
-                    <Input
-                        value={selectedBox.user.name || ""}
-                        readOnly
-                        style={{
-                            backgroundColor: "#f3f4f6",
-                            pointerEvents: "none",
-                            border: "1px solid #d9d9d9",
-                        }}
-                    />
-                </Col>
-                <Col span={12}>
-                    <label>Full Address</label>
-                    <Input
-                        value={selectedBox.user.house || ""}
-                        readOnly
-                        style={{
-                            backgroundColor: "#f3f4f6",
-                            pointerEvents: "none",
-                            border: "1px solid #d9d9d9",
-                        }}
-                    />
-                </Col>
-                <Col span={12}>
-                    <label>Email</label>
-                    <Input
-                        value={selectedBox.user.email || ""}
-                        readOnly
-                        style={{
-                            backgroundColor: "#f3f4f6",
-                            pointerEvents: "none",
-                            border: "1px solid #d9d9d9",
-                        }}
-                    />
-                </Col>
-                <Col span={12}>
-                    <label>Country</label>
-                    <Input
-                        value={selectedBox.user.country || ""}
-                        readOnly
-                        style={{
-                            backgroundColor: "#f3f4f6",
-                            pointerEvents: "none",
-                            border: "1px solid #d9d9d9",
-                        }}
-                    />
-                </Col>
-                <Col span={12}>
-                    <label>Postal Code</label>
-                    <Input
-                        value={selectedBox.user.zipcode || ""}
-                        readOnly
-                        style={{
-                            backgroundColor: "#f3f4f6",
-                            pointerEvents: "none",
-                            border: "1px solid #d9d9d9",
-                        }}
-                    />
-                </Col>
-                <Col span={12}>
-                    <label>City</label>
-                    <Input
-                        value={selectedBox.user.city || ""}
-                        readOnly
-                        style={{
-                            backgroundColor: "#f3f4f6",
-                            pointerEvents: "none",
-                            border: "1px solid #d9d9d9",
-                        }}
-                    />
-                </Col>
-                <Col span={12}>
-                    <label>Phone</label>
-                    <Input
-                        value={selectedBox.user.phone || ""}
-                        readOnly
-                        style={{
-                            backgroundColor: "#f3f4f6",
-                            pointerEvents: "none",
-                            border: "1px solid #d9d9d9",
-                        }}
-                    />
-                </Col>
-                <Col span={12}>
-                    <label>Password</label>
-                    {/* Use regular Input instead of Input.Password to remove the eye icon */}
-                    <Input
-                        value="******"
-                        readOnly
-                        style={{
-                            backgroundColor: "#f3f4f6",
-                            pointerEvents: "none",
-                            border: "1px solid #d9d9d9",
-                        }}
-                    />
-                </Col>
-            </Row>
+            <Form form={form} layout="vertical">
+                <Row gutter={[16, 16]}>
+                    {fields.map(({ label, name }) => (
+                        <Col span={12} key={name}>
+                            <Form.Item label={label} name={name}>
+                                <Input readOnly style={inputStyle} />
+                            </Form.Item>
+                        </Col>
+                    ))}
+                </Row>
+            </Form>
         </Modal>
     );
 };
